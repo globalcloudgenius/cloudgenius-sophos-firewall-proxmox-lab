@@ -91,7 +91,7 @@ The Sophos installation package and license material are **not stored in this re
 
 ## Automated Deployment
 
-The PowerShell workflow validates prerequisites and both QCOW2 images, imports the disks, maps Sophos Port1/LAN and Port2/WAN, and leaves the appliance powered off for review.
+The PowerShell workflow validates the Proxmox prerequisites and both Sophos QCOW2 disk images, creates the VM, imports and attaches the disks in the required order, maps Sophos Port1 to the LAN bridge and Port2 to the WAN bridge, validates the completed configuration, and leaves the appliance powered off for administrator review.
 
 ```powershell
 .\scripts\Deploy-Sophos-Firewall-Proxmox.ps1 `
