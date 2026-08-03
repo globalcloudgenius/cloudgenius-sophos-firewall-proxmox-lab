@@ -1,0 +1,20 @@
+# Vendor software and imported virtual disks
+*.qcow2
+*.raw
+*.vmdk
+VI-*.zip
+
+# Sensitive or generated data
+*.key
+*.pem
+*.pfx
+*.log
+*.tfstate
+*.tfstate.*
+.env
+
+# Local editor and operating-system files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
