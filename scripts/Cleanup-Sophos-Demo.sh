@@ -6,7 +6,7 @@ set -Eeuo pipefail
 
 DEMO_VMID="${DEMO_VMID:-110}"
 PRODUCTION_VMID="${PRODUCTION_VMID:-100}"
-STORAGE_PATH="${STORAGE_PATH:-/mnt/pve/qnap-vmstore/images}"
+STORAGE_PATH="${STORAGE_PATH:-}"
 STAGING_ROOT="${STAGING_ROOT:-/var/lib/vz/sophos-firewall}"
 
 [[ "$DEMO_VMID" =~ ^[0-9]+$ ]] || { echo "Invalid DEMO_VMID"; exit 1; }
