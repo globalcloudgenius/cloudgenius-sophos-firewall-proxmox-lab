@@ -33,8 +33,10 @@ mkdir -p "$STAGING_ROOT/packages" "$STAGING_ROOT/qcow2" "$STAGING_ROOT/logs"
 echo "=== Demo VM should not appear ==="
 qm list | awk -v id="$DEMO_VMID" '$1 == id'
 
-echo "=== Demo disk directory should be empty ==="
-find "$STORAGE_PATH/$DEMO_VMID" -maxdepth 1 -type f 2>/dev/null || true
+if [[ -n "$STORAGE_PATH" ]]; then
+    echo "=== Demo disk directory should be empty ==="
+    find "$STORAGE_PATH/$DEMO_VMID" -maxdepth 1 -type f 2>/dev/null || true
+fi
 
 echo "=== Production VM remains ==="
 qm config "$PRODUCTION_VMID" | grep -E '^(name|scsi[01]):'
