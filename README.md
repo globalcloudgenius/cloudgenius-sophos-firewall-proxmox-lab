@@ -89,6 +89,28 @@ Resource allocation must remain within the active Sophos license entitlement.
 
 The Sophos installation package and license material are **not stored in this repository**.
 
+## Automated Deployment
+
+The PowerShell workflow validates prerequisites and both QCOW2 images, imports the disks, maps Sophos Port1/LAN and Port2/WAN, and leaves the appliance powered off for review.
+
+```powershell
+.\scripts\Deploy-Sophos-Firewall-Proxmox.ps1 `
+  -ProxmoxHost <PROXMOX_HOST> `
+  -Storage <STORAGE_ID>
+```
+
+Create a disposable teaching VM:
+
+```powershell
+.\scripts\Deploy-Sophos-Firewall-Proxmox.ps1 `
+  -ProxmoxHost <PROXMOX_HOST> `
+  -Storage <STORAGE_ID> `
+  -VmId 110 `
+  -VmName SOPHOS-DEMO01
+```
+
+After the demonstration, review the cleanup defaults and run `scripts/Cleanup-Sophos-Demo.sh` on the Proxmox node. Vendor ZIP and disk images are excluded from source control.
+
 ## Project Status
 
 **Current status: In Progress**
@@ -97,10 +119,10 @@ The Sophos installation package and license material are **not stored in this re
 - [x] Obtain Sophos Firewall KVM evaluation package
 - [x] Confirm official Proxmox/KVM support
 - [x] Establish architecture and security objectives
-- [ ] Extract and validate QCOW2 disks
-- [ ] Create Proxmox VM
-- [ ] Import primary and auxiliary disks
-- [ ] Configure WAN and trusted interfaces
+- [x] Extract and validate QCOW2 disks
+- [x] Create Proxmox VM
+- [x] Import primary and auxiliary disks
+- [x] Configure WAN and trusted interfaces
 - [ ] Complete initial registration and setup
 - [ ] Configure segmented zones and firewall policies
 - [ ] Configure NAT, IPS, web, and application policies

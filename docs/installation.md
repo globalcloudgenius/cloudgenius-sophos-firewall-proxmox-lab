@@ -5,7 +5,7 @@
 - Sophos package: `VI-22.0.1_MR-1.KVM-490.zip`
 - Target: Proxmox VE
 - Appliance type: KVM/QEMU
-- Status: In progress
+- Status: Automated deployment validated
 
 Follow the current [Sophos Proxmox deployment documentation](https://docs.sophos.com/nsg/sophos-firewall/22.0/Help/en-us/webhelp/onlinehelp/VirtualAndSoftwareAppliancesHelp/KVM/ProxmoxInstall/) as the authoritative source.
 
@@ -26,6 +26,18 @@ Follow the current [Sophos Proxmox deployment documentation](https://docs.sophos
 - Do not expose Proxmox or Sophos administration directly to the internet.
 - Confirm bridge-to-physical-NIC mappings before starting the VM.
 - Preserve a working route to Proxmox management.
+
+## Automated deployment
+
+Run from Windows PowerShell:
+
+```powershell
+.\scripts\Deploy-Sophos-Firewall-Proxmox.ps1 `
+  -ProxmoxHost <PROXMOX_HOST> `
+  -Storage <STORAGE_ID>
+```
+
+For a disposable teaching VM, add `-VmId 110 -VmName SOPHOS-DEMO01`. Keep the primary firewall stopped if both appliances share the same isolated LAN. Review and run `scripts/Cleanup-Sophos-Demo.sh` on the Proxmox node after the demonstration.
 
 ## Implementation sequence
 
