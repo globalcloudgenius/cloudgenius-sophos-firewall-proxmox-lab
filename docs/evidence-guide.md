@@ -1,45 +1,36 @@
-# Public Evidence Guide
+# Public Evidence and Secret Handling
 
-## Publish
+## Safe to publish
 
-- Sanitized architecture diagrams
-- Redacted VM resource summaries
-- Zone and interface names without sensitive identifiers
-- High-level firewall-policy matrices
-- Test results
-- Business outcomes
-- Lessons learned
-- Product version and update status
-- Non-sensitive logs demonstrating expected behavior
+- Sanitized topology and address-role diagrams
+- Product and firmware version
+- VM resource allocation
+- Generic policy matrices
+- Redacted test results
+- Backup method and restore procedure
 
-## Do not publish
+## Never publish
 
-- Trial serial numbers or license files
-- Usernames, passwords, MFA data, or recovery codes
-- Public IP addresses
-- MAC addresses when unnecessary
-- Private keys, certificates, API tokens, or cookies
-- Unredacted browser URLs containing internal hosts
-- Employer or client data
-- Sophos installation binaries
-- Full production firewall exports
-- Screenshots showing personal email or account identifiers
+- Sophos serial numbers or license records
+- Public IP addresses or dynamic-DNS names
+- Account email addresses or real usernames
+- Passwords or browser-saved-password dialogs
+- OTP QR codes, Base32/HEX secrets, OTP values, or recovery codes
+- Private keys, certificates, cookies, or exported VPN profiles
+- Full MAC addresses
+- Router Wi-Fi SSIDs or passphrases
+- Unredacted internal/admin URLs
+- Sophos ISO files or proprietary binaries
+- Firewall/Proxmox backup archives
 
-## Suggested folders
+A blurred value may still be recoverable. Prefer cropping or replacing it with a solid placeholder.
 
-```text
-evidence/
-├── architecture/
-├── installation/
-├── policies/
-├── testing/
-└── operations/
+## Pre-commit review
+
+```bash
+git diff --check
+git grep -nEI 'password|passphrase|secret|serial|BEGIN (RSA|OPENSSH|PRIVATE)|[0-9]{6}.*OTP'
+git status --short
 ```
 
-Add evidence only after completing the relevant milestone. Name files clearly, for example:
-
-```text
-T05-guest-to-lan-denied-redacted.png
-firewall-policy-matrix-v1.md
-proxmox-vm-resources-redacted.png
-```
+Review every image manually; text scanners cannot detect screenshot secrets. If an OTP secret or private key was published, remove it from history and rotate it immediately.

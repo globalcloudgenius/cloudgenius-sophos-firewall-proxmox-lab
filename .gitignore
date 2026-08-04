@@ -1,19 +1,24 @@
-# Vendor software and imported virtual disks
+# Vendor software and virtual disks
+*.iso
 *.qcow2
+*.img
 *.raw
 *.vmdk
-VI-*.zip
+*.zip
 
-# Sensitive or generated data
-*.key
+# Backups, exports, and VPN profiles
+*.vma
+*.vma.zst
+*.tar.zst
+*.ovpn
+*.scx
 *.pem
+*.key
+*.p12
 *.pfx
-*.log
-*.tfstate
-*.tfstate.*
-.env
 
-# Local editor and operating-system files
+# Logs and local tooling
+*.log
 .DS_Store
 Thumbs.db
 .vscode/

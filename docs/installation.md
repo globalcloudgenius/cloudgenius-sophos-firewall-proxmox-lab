@@ -1,95 +1,97 @@
-# Proxmox Installation Runbook
+# Home Edition Installation Runbook
 
 ## Version scope
 
-- Sophos package: `VI-22.0.1_MR-1.KVM-490.zip`
-- Target: Proxmox VE
-- Appliance type: KVM/QEMU
-- Status: Automated deployment validated
+- Installer: `SW-22.0.1_MR-1-490.iso`
+- Installed firmware: SFOS 22.0.1 MR-1 Build 490
+- License: Sophos Firewall Home Edition
+- Hypervisor: Proxmox VE 9.2.2 / KVM
+- Deployment status: validated
 
-Follow the current [Sophos Proxmox deployment documentation](https://docs.sophos.com/nsg/sophos-firewall/22.0/Help/en-us/webhelp/onlinehelp/VirtualAndSoftwareAppliancesHelp/KVM/ProxmoxInstall/) as the authoritative source.
+This runbook uses only the **Home Edition software ISO**. The paid/evaluation `VI-*.KVM.zip` package, primary QCOW2 disk, and auxiliary/report QCOW2 disk are not part of this deployment.
 
 ## Prerequisites
 
-- Supported Proxmox VE host
-- KVM Sophos Firewall evaluation package
-- Valid trial or license entitlement
-- At least 1 vCPU, 4 GB RAM, 2 vNICs, 32 GB primary disk, and 80 GB report disk
-- Planned bridge/interface mappings
-- Administrative workstation able to reach the initial management network
-- Backup of relevant Proxmox network configuration
+1. Request a Sophos Firewall Home Edition serial through the official Home Edition page.
+2. Download the Intel software ISO. Keep it outside Git.
+3. Verify that WAN and LAN are separate Proxmox bridges.
+4. Confirm the ISO storage accepts `iso` content and disk storage accepts `images`.
+5. Install/enable Windows OpenSSH Client.
+6. Back up relevant Proxmox configuration.
+7. Confirm VMID and name are unused.
 
-## Safety checks
-
-- Do not upload Sophos binaries, serial numbers, or license files to GitHub.
-- Do not attach WAN and management to the same unrestricted bridge.
-- Do not expose Proxmox or Sophos administration directly to the internet.
-- Confirm bridge-to-physical-NIC mappings before starting the VM.
-- Preserve a working route to Proxmox management.
-
-## Automated deployment
-
-Run from Windows PowerShell:
+## Automated VM creation
 
 ```powershell
-.\scripts\Deploy-Sophos-Firewall-Proxmox.ps1 `
+.\scripts\Deploy-Sophos-Home-Firewall-Proxmox.ps1 `
   -ProxmoxHost <PROXMOX_HOST> `
-  -Storage <STORAGE_ID>
+  -ProxmoxNode <PROXMOX_NODE> `
+  -DiskStorage <VM_DISK_STORAGE> `
+  -IsoStorage local `
+  -WanBridge vmbr0 `
+  -LanBridge vmbr1 `
+  -VmId 101 `
+  -IsoFile "$env:USERPROFILE\Downloads\SW-22.0.1_MR-1-490.iso"
 ```
 
-For a disposable teaching VM, add `-VmId 110 -VmName SOPHOS-DEMO01`. Keep the primary firewall stopped if both appliances share the same isolated LAN. Review and run `scripts/Cleanup-Sophos-Demo.sh` on the Proxmox node after the demonstration.
+Safe behavior:
 
-## Implementation sequence
+- Enforces at most 4 CPU cores and 6144 MB RAM.
+- Computes SHA-256 before upload and verifies it on Proxmox.
+- Verifies node, bridges, storage state, and content types.
+- Refuses existing VM names and VMIDs.
+- Does not edit `/etc/network/interfaces`.
+- Does not delete an existing VM.
+- On failure, removes only an incomplete VM created by that run.
+- Creates, validates, and starts the VM.
 
-1. Extract the downloaded KVM ZIP locally.
-2. Confirm that the primary and auxiliary QCOW2 disks are present.
-3. Upload or securely copy the extracted disks to a temporary location on the selected Proxmox node.
-4. Create the VM without installation media.
-5. Allocate resources within the Sophos license limit.
-6. Ensure **Start after created** is disabled until storage and networking are complete.
-7. Import the primary and auxiliary disks into the selected Proxmox storage.
-8. Attach the imported disks in the required order.
-9. Add and map WAN, LAN, DMZ, and optional guest interfaces.
-10. Disable QEMU Guest Agent if enabled.
-11. Start the VM and observe the console.
-12. From an isolated management workstation, connect to the documented initial Sophos management address and port.
-13. Complete registration and basic setup.
-14. Immediately restrict administrative access and replace default credentials through the supported setup flow.
-15. Configure zones, routes, DNS, DHCP if required, firewall rules, NAT, and security profiles.
-16. Back up the configuration.
-17. Execute the validation test plan.
-18. Capture only sanitized evidence.
+## Interactive installer
 
-## Example import pattern
+1. Open the VM console.
+2. Confirm that the installer detects KVM and the intended 80 GB disk.
+3. At the erase warning, continue only after confirming the disk belongs to the new VM.
+4. Wait for “Firmware Installed”.
+5. Remove/eject the installer ISO.
+6. Set boot order to `scsi0` first.
+7. Reboot.
+8. Confirm the SFOS main menu appears.
 
-Confirm storage identifiers and VM ID before running commands:
+## Initial management
 
-```bash
-qm importdisk <VMID> PRIMARY-DISK.qcow2 <STORAGE_ID>
-qm importdisk <VMID> AUXILIARY-DISK.qcow2 <STORAGE_ID>
+The factory management address is normally `172.16.16.16:4444`. If it is not directly reachable, use a temporary SSH local forward through the Proxmox node:
+
+```powershell
+ssh -N -L 4444:172.16.16.16:4444 root@<PROXMOX_HOST>
 ```
 
-The imported disks must then be attached to the VM through Proxmox hardware settings. Command syntax and generated disk identifiers can vary by Proxmox version and storage type.
+Then browse to `https://127.0.0.1:4444`. Keep the PowerShell window open while using the tunnel.
 
-## Post-install hardening
+During setup:
 
-- Restrict web and SSH administration to the management zone.
-- Disable unused administrative services.
-- Synchronize time with approved NTP sources.
-- Configure secure DNS behavior.
-- Apply least-privilege firewall rules.
-- Enable logging on security-relevant rules.
-- Configure IPS and other licensed security profiles.
-- Export and protect a configuration backup.
-- Document firmware and pattern-update status.
+1. Set the firewall name and correct time zone.
+2. Register with the Home Edition serial, not a 30-day trial serial.
+3. Confirm the Home license and its long-dated subscription status.
+4. Complete the wizard and allow the firewall to reboot.
+5. Sign in with the administrator password created during setup.
 
-## Completion evidence
+## Validated network setup
 
-- VM hardware summary
-- Sanitized interface and zone configuration
-- Policy table
-- NAT validation
-- Segmentation test results
-- IPS or security-event evidence using safe test traffic
-- Backup completion
-- Final architecture diagram
+1. Set Port1 to LAN, static `10.10.10.1/24`.
+2. Set Port2 to WAN, DHCP.
+3. Reserve the Sophos WAN address on the ISP router.
+4. Enable the Port1 DHCP server with `10.10.10.100-10.10.10.200`.
+5. Configure the Proxmox-side `vmbr1` address as `10.10.10.2/24`.
+6. Test `ping -I vmbr1 -c 4 10.10.10.1`.
+7. Access Sophos directly at `https://10.10.10.1:4444`.
+
+Do not paste `iface vmbr1 ...` into a shell; it is configuration-file syntax. Apply persistent Proxmox network changes through the UI or a carefully reviewed `/etc/network/interfaces.new` commit.
+
+## Post-install
+
+- Eject the ISO and confirm disk-first boot.
+- Restrict local service ACLs.
+- Configure MFA and restricted SSL VPN.
+- Create a non-root, least-privilege Proxmox account for each person.
+- Enable logs on management-access rules.
+- Take a protected stop-mode Proxmox backup with ZSTD.
+- Export a Sophos configuration backup and protect it separately.

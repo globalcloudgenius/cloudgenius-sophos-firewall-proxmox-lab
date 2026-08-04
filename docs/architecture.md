@@ -1,65 +1,58 @@
-# Architecture and Design
+# Validated Architecture
 
 ## Purpose
 
-Deploy Sophos Firewall as the central security gateway for a segmented Proxmox enterprise lab.
+Sophos Firewall Home Edition is the routed security boundary between the existing home network and the isolated CloudGenius lab. It provides DHCP, policy enforcement, NAT, logging, and remote-access VPN. Proxmox remains the hypervisor and does not replace Sophos as the lab gateway.
 
-## Design objectives
+## Interface and address plan
 
-- Separate workloads by trust level and purpose.
-- Apply default-deny, least-privilege access between zones.
-- Protect administrative interfaces.
-- Support controlled internet access, service publishing, and VPN.
-- Generate security telemetry and operational evidence.
-- Avoid exposing the Proxmox management plane directly to untrusted networks.
+| Component | Interface / bridge | Zone | Addressing | Purpose |
+|---|---|---|---|---|
+| Sophos Port1 | `net0 -> vmbr1` | LAN | `10.10.10.1/24` static | Lab gateway and DHCP |
+| Proxmox node | `vmbr1` | LAN | `10.10.10.2/24` static | Restricted management |
+| Sophos Port2 | `net1 -> vmbr0` | WAN | DHCP reservation | Upstream/home network |
+| Proxmox node | `vmbr0` | Upstream management | Existing private address | Local administration |
+| SSL VPN clients | Sophos virtual pool | VPN | `10.50.0.0/24` | Remote users |
 
-## Logical zones
+Port order is important: **Port1 is LAN on vmbr1; Port2 is WAN on vmbr0.**
 
-| Zone | Reference subnet | Purpose | Default posture |
-|---|---|---|---|
-| WAN | ISP-provided | Untrusted upstream connectivity | Deny unsolicited inbound |
-| LAN | 10.10.10.0/24 | Trusted users and domain clients | Controlled outbound |
-| DMZ | 10.10.20.0/24 | Internet-facing or isolated services | Restricted both directions |
-| Guest | 10.10.30.0/24 | Student or visitor connectivity | Internet only |
-| Management | To be confirmed | Proxmox, firewall, storage administration | Administrator sources only |
+## Routing behavior
 
-## Traffic principles
+- Sophos owns `10.10.10.1/24` and is the default gateway for lab workloads.
+- Proxmox owns `10.10.10.2/24` on `vmbr1`.
+- LAN DHCP leases use `10.10.10.100-10.10.10.200`.
+- Remote users receive `10.50.0.0/24` addresses.
+- The student VPN is split-tunnel and advertises only approved hosts.
+- The Proxmox access policy permits TCP 8006 only.
+- A linked MASQ rule supplies symmetric return routing when Proxmox has no route to `10.50.0.0/24`.
 
-1. WAN to internal zones is denied unless a documented service is explicitly published.
-2. Guest cannot initiate connections to LAN, DMZ, management, Proxmox, or storage.
-3. DMZ cannot initiate connections to LAN unless a specific application dependency is approved.
-4. Management access is limited to known administrative devices.
-5. Every allow rule must identify source, destination, service, security profile, logging, owner, and business justification.
-6. Temporary rules must have an expiry date.
+## Trust boundaries
 
-## Proxmox interface model
-
-| Sophos interface | Proxmox bridge | Role |
+| From | To | Default |
 |---|---|---|
-| Port1 | WAN bridge | Upstream/ISP |
-| Port2 | LAN bridge | Trusted LAN |
-| Port3 | DMZ bridge | Isolated services |
-| Port4 | Guest or VLAN trunk | Guest and additional segments |
+| WAN | Sophos local services | Deny except explicit VPN services |
+| WAN | LAN | Deny |
+| VPN students | Proxmox management | Allow TCP 8006 only, matched user/group, logged |
+| VPN students | Other LAN resources | Deny |
+| LAN | WAN | Explicit policy only |
+| Unapproved sources | Sophos/Proxmox administration | Deny |
 
-Actual bridge names and physical NIC mappings will be documented after validation.
+## Proxmox VM baseline
 
-## Availability and recovery
+| Setting | Value |
+|---|---|
+| Firmware | SeaBIOS |
+| Machine | `pc` |
+| CPU | Host, 4 cores |
+| Memory | 6144 MB, ballooning disabled |
+| Disk controller | VirtIO SCSI single |
+| Disk | `scsi0`, 80 GB |
+| Installer | `ide2`, software ISO |
+| NIC model | `e1000` validated; `virtio` supported by script |
+| Proxmox QEMU guest-agent integration | Disabled |
+| Boot during installation | `ide2;scsi0` |
+| Boot after installation | `scsi0` |
 
-This lab begins as a single firewall VM. Production adoption would require evaluation of:
+## Implemented network scope
 
-- Redundant Proxmox nodes and network paths
-- Sophos high availability and license requirements
-- Configuration backup and tested restore
-- UPS and power resilience
-- Out-of-band management
-- Change control and rollback
-
-## Decision record
-
-| Decision | Rationale | Status |
-|---|---|---|
-| Use KVM package | Proxmox VE uses KVM/QEMU | Approved |
-| Import both Sophos QCOW2 disks | Primary system and report storage are required | Approved |
-| Use 4+ vNICs | Clear zone separation and portfolio visibility | Planned |
-| Keep management isolated | Protects hypervisor and firewall control planes | Planned |
-| Publish sanitized evidence only | Protects credentials and internal details | Mandatory |
+This repository documents only the deployed two-interface design: Port1/LAN on `vmbr1` and Port2/WAN on `vmbr0`. It does not claim a guest network, DMZ, VLAN trunk, site-to-site VPN, or high-availability deployment.
