@@ -1,0 +1,50 @@
+name: Validate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  scripts-and-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Parse PowerShell deployment script
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile(
+            "$PWD/scripts/Deploy-Sophos-Home-Firewall-Proxmox.ps1",
+            [ref]$tokens,
+            [ref]$errors
+          )
+          if ($errors.Count -gt 0) {
+            $errors | Format-List
+            exit 1
+          }
+
+      - name: Validate Bash syntax
+        shell: bash
+        run: |
+          bash -n scripts/Cleanup-Sophos-Demo.sh
+          awk '/^\$bash = @.\x27/{capture=1; next} capture && /^\x27@$/{exit} capture{print}' \
+            scripts/Deploy-Sophos-Home-Firewall-Proxmox.ps1 | bash -n
+
+      - name: Reject vendor artifacts and obvious private data
+        shell: bash
+        run: |
+          if find . -type f \( -iname '*.iso' -o -iname '*.qcow2' -o -iname '*.ovpn' \) -print -quit | grep -q .; then
+            echo 'Vendor image or VPN profile found in repository.'
+            exit 1
+          fi
+          if git grep -nE 'BEGIN (RSA |OPENSSH |EC )?PRIVATE KEY|(^|[^[:alnum:]_])(password|token|secret)[[:space:]]*[:=][[:space:]]*[^$<{[:space:]]'; then
+            echo 'Potential credential or private key found.'
+            exit 1
+          fi

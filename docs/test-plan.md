@@ -1,46 +1,22 @@
 # Validation Test Plan
 
-## Test status values
-
-- Not started
-- Passed
-- Failed
-- Blocked
-- Not applicable
-
-## Functional and security tests
-
 | ID | Test | Expected result | Status |
 |---|---|---|---|
-| T01 | VM boots with both disks attached | Sophos console loads normally | Not started |
-| T02 | Administrative workstation reaches management UI | Access works only from approved source | Not started |
-| T03 | LAN client reaches approved internet services | Traffic is allowed, NATed, and logged | Not started |
-| T04 | Guest reaches internet | Approved outbound traffic succeeds | Not started |
-| T05 | Guest attempts LAN access | Connection is denied and logged | Not started |
-| T06 | Guest attempts management access | Connection is denied and logged | Not started |
-| T07 | DMZ attempts unauthorized LAN access | Connection is denied and logged | Not started |
-| T08 | Approved LAN-to-DMZ application flow | Only documented ports succeed | Not started |
-| T09 | Unsolicited inbound WAN traffic | Traffic is denied unless explicitly published | Not started |
-| T10 | DNS resolution from each permitted zone | Approved DNS path succeeds | Not started |
-| T11 | IPS safe validation scenario | Policy triggers or records expected event | Not started |
-| T12 | Web/application policy test | Selected policy is enforced | Not started |
-| T13 | VPN authentication and routing | Authorized access works as designed | Not started |
-| T14 | Configuration backup | Backup completes and is protected | Not started |
-| T15 | Restart test | Firewall returns to healthy state | Not started |
-| T16 | Log and report review | Required events are visible and timestamped | Not started |
+| T01 | Deploy with `SW-22.0.1_MR-1-490.iso` | VM 101 is created and started | Passed |
+| T02 | Installer writes the virtual disk | SFOS boots after ISO eject | Passed |
+| T03 | Home serial registration | Home subscriptions show long-dated validity | Passed |
+| T04 | Port mapping | Port1=LAN/vmbr1; Port2=WAN/vmbr0 | Passed |
+| T05 | LAN gateway | Proxmox `10.10.10.2` reaches `10.10.10.1` | Passed |
+| T06 | LAN DHCP | Client receives `10.10.10.100-200` with gateway `10.10.10.1` | Passed |
+| T07 | Public SSL VPN transport | TCP 8443 reaches Sophos | Passed |
+| T08 | MFA enrollment | User receives and activates OTP token | Passed |
+| T09 | VPN connection | Client receives a `10.50.0.0/24` address | Passed |
+| T10 | Split-tunnel route | `10.10.10.2` routes through VPN | Passed |
+| T11 | Proxmox service | TCP `10.10.10.2:8006` succeeds | Passed |
+| T12 | Unauthorized LAN service | Access is denied and logged | Pending |
+| T13 | Proxmox RBAC | Student cannot alter host/firewall/ACL/storage | Pending |
+| T14 | Backup | Protected stop-mode ZSTD backup completes | Pending |
+| T15 | Restore drill | Backup restores into an isolated test VM | Pending |
+| T16 | Secret scan | Repository contains no live identifiers or credentials | Passed |
 
-## Evidence requirements
-
-For each completed test, record:
-
-- Date
-- Tester
-- Configuration version
-- Test source and destination
-- Expected result
-- Actual result
-- Evidence filename
-- Remediation, if required
-- Retest result
-
-Use benign validation traffic. Do not publish exploit payloads, credentials, public IP addresses, or private infrastructure details.
+Record date, tester, revision, expected and actual result, sanitized evidence, and remediation. Do not publish public IPs, serials, emails, MAC addresses, passwords, or OTP material.

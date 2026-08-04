@@ -1,49 +1,36 @@
 # Security Controls
 
-## Control objectives
-
-| Control area | Implementation objective | Evidence |
+| Control | Implemented baseline | Verification |
 |---|---|---|
-| Administrative security | Management zone and approved source devices only | Sanitized access settings |
-| Authentication | Strong unique credentials and supported MFA where available | Configuration confirmation |
-| Segmentation | LAN, DMZ, guest, management, and WAN separation | Interface/zone diagram |
-| Least privilege | Default deny and explicitly justified allow rules | Policy matrix |
-| Threat prevention | IPS and licensed protections on relevant traffic | Policy and event evidence |
-| Egress control | Restrict unnecessary outbound services | Rule review |
-| Inbound exposure | Publish only approved services with NAT and protection | NAT/policy record |
-| Logging | Log security decisions and administrative events | Report screenshots |
-| Patch management | Maintain supported SFOS firmware and patterns | Version record |
-| Backup | Encrypted/protected configuration backup and restore procedure | Backup log |
-| Change management | Document purpose, testing, approval, and rollback | Change record |
-| Privacy | Remove secrets and identifiers from public evidence | Evidence checklist |
+| Home-license resource cap | 4 vCPU, 6144 MB | Proxmox VM hardware |
+| Network separation | WAN `vmbr0`, LAN `vmbr1` | VM NIC mapping |
+| Admin plane | No public Proxmox 8006/SSH forwarding | Router and Sophos rule review |
+| Remote access | SSL VPN TCP 8443 | External port test |
+| Strong authentication | Individual user plus TOTP MFA | Authentication logs |
+| Least privilege | VPN group to one host and TCP 8006 | Firewall rule and policy test |
+| Split tunnel | Only `10.10.10.2` advertised | Client route table |
+| Return routing | Linked MASQ only where required | NAT hit counter and connection test |
+| Accountability | Firewall-rule logging and named users | Log viewer |
+| Proxmox authorization | Separate non-root account with scoped role/pool | Proxmox permissions view |
+| Recovery | Protected stop-mode VM backup, ZSTD | Backup task log |
+| Secret hygiene | No serials, public IPs, emails, MACs, passwords, OTP secrets | Repository scan |
 
-## Minimum firewall policy fields
+## Proxmox RBAC
 
-Every policy must document:
+VPN access is not authorization to administer Proxmox. For every remote user:
 
-- Rule name
-- Business purpose
-- Source zone and network
-- Destination zone and network
-- Services
-- Users or identity conditions
-- Action
-- NAT behavior
-- Security profiles
-- Logging
-- Owner
-- Review or expiry date
+1. Create an individual Proxmox realm account.
+2. Create a resource pool containing only approved VMs.
+3. Assign a built-in or custom role with only required privileges.
+4. Do not grant `Administrator`, root, node shell, storage deletion, network modification, or permission-management rights.
+5. Require a second Proxmox factor where supported.
+6. Review and remove access when the engagement ends.
 
-## Example policy intent
+A student/operator role may include VM audit, console, power management, and limited configuration for assigned VMs. It must not include host, firewall-VM, storage, cluster, or ACL administration.
 
-| Source | Destination | Service | Action | Notes |
-|---|---|---|---|---|
-| Management | Sophos admin | HTTPS administration | Allow | Approved admin devices only |
-| Guest | Internet | DNS, HTTP/S | Allow | Apply security profiles |
-| Guest | Internal zones | Any | Deny | Log violations |
-| LAN | DMZ | Required application ports | Allow selectively | No broad any/any |
-| WAN | Internal zones | Any | Deny | Publish approved services separately |
+## Backup versus snapshot
 
-## Portfolio boundary
+- **Backup** is the recovery control. Store it outside the VM disk, use stop mode for the cleanest firewall image, and mark it protected.
+- **Snapshot** is a short-lived rollback point before a controlled change. It is not a backup.
 
-This repository documents architecture and implementation patterns. It must not contain working credentials, private certificates, serial numbers, public administrative endpoints, or security configurations copied from an employer or client.
+Also export Sophos configuration backups and test restoration periodically.
