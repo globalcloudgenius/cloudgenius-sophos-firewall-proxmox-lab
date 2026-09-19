@@ -2,6 +2,38 @@
 
 **Client overview:** [Client-facing case study](./CASE-STUDY.md)
 
+## Outcome & Evidence
+
+| Evidence | Current state |
+|---|---|
+| Proxmox/KVM deployment model | Documented |
+| Sophos KVM package and disk workflow | Documented |
+| Automated VM deployment workflow | Implemented in repository scripts |
+| Zone-based target architecture | Documented |
+| Segmentation / policy model | Designed |
+| VPN / hybrid connectivity | Planned within target architecture |
+| Monitoring / recovery | Planned within target architecture |
+| Overall project status | **In progress** |
+
+> **Trust note:** this repository intentionally separates validated implementation from planned controls. Items are only marked complete when there is implementation evidence.
+
+**Proof:** Deployment automation and project-status checklist are available in the repository and summarized in the [client-facing case study](./CASE-STUDY.md).
+
+## Architecture at a glance
+
+```mermaid
+flowchart TB
+    I[Internet / ISP] --> W[WAN Zone]
+    W --> F[Sophos Firewall VM on Proxmox]
+    F --> LAN[LAN]
+    F --> DMZ[DMZ]
+    F --> G[Guest]
+    F --> M[Management]
+    F -. IPsec / Hybrid Connectivity .-> C[Azure / AWS]
+```
+
+---
+
 [![Project Status](https://img.shields.io/badge/status-in%20progress-f59e0b)](#project-status)
 [![Platform](https://img.shields.io/badge/platform-Proxmox%20VE-e57000)](https://www.proxmox.com/)
 [![Firewall](https://img.shields.io/badge/firewall-Sophos%20Firewall-286bd6)](https://www.sophos.com/en-us/products/next-gen-firewall)
