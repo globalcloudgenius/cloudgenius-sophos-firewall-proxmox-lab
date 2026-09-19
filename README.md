@@ -176,3 +176,21 @@ All screenshots must be reviewed and sanitized before publication.
 ## Disclaimer
 
 This is an independent educational lab and is not an official Sophos or Proxmox project. Sophos, Sophos Firewall, Proxmox, and associated marks belong to their respective owners. Product software and licensing remain subject to the vendors' terms.
+
+---
+
+## Consulting relevance
+
+This project demonstrates the combination of architecture, security engineering, virtualization, automation, and operational documentation required for firewall and hybrid-infrastructure engagements.
+
+Typical consulting use cases include:
+
+- firewall architecture and modernization;
+- network segmentation and least-privilege policy;
+- secure administration;
+- VPN and hybrid connectivity;
+- Proxmox / KVM infrastructure;
+- lab-to-production design reviews;
+- network-security automation and operational handoff.
+
+**Consulting inquiries:** advisory@cloudgenius.ca · https://cloudgenius.ca
