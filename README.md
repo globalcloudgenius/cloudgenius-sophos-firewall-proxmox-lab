@@ -1,5 +1,7 @@
 # CloudGenius Sophos Firewall on Proxmox Enterprise Lab
 
+**Client overview:** [Client-facing case study](./CASE-STUDY.md)
+
 [![Project Status](https://img.shields.io/badge/status-in%20progress-f59e0b)](#project-status)
 [![Platform](https://img.shields.io/badge/platform-Proxmox%20VE-e57000)](https://www.proxmox.com/)
 [![Firewall](https://img.shields.io/badge/firewall-Sophos%20Firewall-286bd6)](https://www.sophos.com/en-us/products/next-gen-firewall)
